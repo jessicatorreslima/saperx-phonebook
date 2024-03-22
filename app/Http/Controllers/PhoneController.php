@@ -7,41 +7,59 @@ use Illuminate\Http\Request;
 
 class PhoneController extends Controller
 {
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function store(Request $request, $contactId)
     {
         $request->validate([
-            'phone_number' => 'required|string',
+            'phone_number' => 'required|string|max:20',
         ]);
 
         $phone = new Phone([
-            'phone_number' => $request->phone_number,
+            'phone_number' => $request->input('phone_number'),
             'contact_id' => $contactId,
         ]);
 
         $phone->save();
 
-        return $phone;
+        return response()->json(['message' => 'Phone created successfully', 'phone' => $phone], 201);
     }
 
-    public function update(Request $request, $contactId, $phoneId)
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
     {
-        $phone = Phone::findOrFail($phoneId);
-
         $request->validate([
-            'phone_number' => 'required|string',
+            'phone_number' => 'required|string|max:20',
         ]);
 
-        $phone->phone_number = $request->phone_number;
+        $phone = Phone::findOrFail($id);
+        $phone->phone_number = $request->input('phone_number');
         $phone->save();
 
-        return $phone;
+        return response()->json(['message' => 'Phone updated successfully', 'phone' => $phone], 200);
     }
 
-    public function destroy($contactId, $phoneId)
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
     {
-        $phone = Phone::findOrFail($phoneId);
+        $phone = Phone::findOrFail($id);
         $phone->delete();
 
-        return response()->json(null, 204);
+        return response()->json(['message' => 'Phone deleted successfully'], 200);
     }
 }

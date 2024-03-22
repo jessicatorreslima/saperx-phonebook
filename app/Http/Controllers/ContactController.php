@@ -7,21 +7,34 @@ use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Contact::all();
+        $contacts = Contact::with('phones')->get();
+
+        if ($request->wantsJson()) {
+            return response()->json($contacts);
+        }
+
+        return view('phonebook', compact('contacts'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:contacts',
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:contacts,email',
             'birthdate' => 'required|date',
-            'cpf' => 'required|string|unique:contacts',
+            'cpf' => 'required|string|unique:contacts,cpf',
+            'phones.*' => 'required|string|max:20'
         ]);
 
-        return Contact::create($request->all());
+        $contact = Contact::create($data);
+
+        foreach ($request->input('phones') as $phone) {
+            $contact->phones()->create(['phone_number' => $phone]);
+        }
+
+        return redirect('/phonebook')->with('success', 'Contact added successfully!');
     }
 
     public function show($id)
@@ -29,20 +42,32 @@ class ContactController extends Controller
         return Contact::findOrFail($id);
     }
 
-    public function update(Request $request, $id)
+    public function edit($id)
     {
         $contact = Contact::findOrFail($id);
+        return view('edit_contact', compact('contact'));
+    }
 
-        $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:contacts,email,' . $contact->id,
+    public function update(Request $request, $id)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:contacts,email,' . $id,
             'birthdate' => 'required|date',
-            'cpf' => 'required|string|unique:contacts,cpf,' . $contact->id,
+            'cpf' => 'required|string|unique:contacts,cpf,' . $id,
+            'phones.*' => 'required|string|max:20'
         ]);
 
-        $contact->update($request->all());
+        $contact = Contact::findOrFail($id);
+        $contact->update($data);
 
-        return $contact;
+        // Atualizar telefones
+        $contact->phones()->delete();
+        foreach ($request->input('phones') as $phone) {
+            $contact->phones()->create(['phone_number' => $phone]);
+        }
+
+        return redirect('/phonebook')->with('success', 'Contact updated successfully!');
     }
 
     public function destroy($id)
@@ -50,6 +75,6 @@ class ContactController extends Controller
         $contact = Contact::findOrFail($id);
         $contact->delete();
 
-        return response()->json(null, 204);
+        return redirect('/phonebook')->with('success', 'Contact deleted successfully!');
     }
 }
