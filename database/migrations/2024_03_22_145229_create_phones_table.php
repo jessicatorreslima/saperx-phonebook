@@ -9,24 +9,24 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::create('contacts', function (Blueprint $table) {
+        Schema::create('phones', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 255)->nullable(false);
-            $table->string('email', 255);
-            $table->date('birthdate');
-            $table->string('cpf')->unique();
+            $table->unsignedBigInteger('contact_id');
             $table->string('phone_number');
             $table->timestamps();
+
+            $table->foreign('contact_id')->references('id')->on('contacts')->onDelete('cascade');
         });
     }
+
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('contacts');
+        Schema::dropIfExists('phones');
     }
 };
