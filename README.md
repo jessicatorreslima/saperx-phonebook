@@ -18,7 +18,7 @@ A simple phonebook project built with Laravel.
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/jessicatorreslima/saperx-phonebook
+    git clone https://github.com/jessicatorreslima/saperx-phonebook.git
     ```
 
 2. Navigate to the project folder:
